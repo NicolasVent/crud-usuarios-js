@@ -1,0 +1,25 @@
+
+*{
+    box-sizing: border-box;
+    background-color: #cbd4ae; ;
+}
+
+body {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#mensagem {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.sucesso {
+    color: green;
+}
+
+.erro {
+    color: red;
+}
