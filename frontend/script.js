@@ -1,5 +1,6 @@
 const API_URL = 'http://localhost:3000/usuarios'
 let usuarioEmEdicao = null
+let usuariosCache = []
 
 
 function mostrarMensagem(texto, tipo) {
@@ -14,6 +15,17 @@ function mostrarMensagem(texto, tipo) {
   }, 3000)
 }
 
+function atualizarContador(qtd) {
+  document.getElementById('contador').textContent = `👥 Total de usuários: ${qtd}`
+}
+
+
+function mostrarSemResultados(mostrar) {
+  document.getElementById('semResultados').style.display =
+    mostrar ? 'block' : 'none'
+}
+
+
 async function listarUsuarios() {
     // busca todos os usuários na API e os exibe na lista.
   try {
@@ -22,40 +34,67 @@ async function listarUsuarios() {
     const usuarios = await response.json()
     // Converte a resposta em JSON.
 
-    const lista = document.getElementById('lista')
-    lista.innerHTML = ''
+    usuariosCache = usuarios
 
-usuarios.forEach(u => {
-  const li = document.createElement('li')
+const usuariosOrdenados = [...usuarios].sort((a, b) =>
+  a.nome.localeCompare(b.nome)
+)
+atualizarContador(usuariosOrdenados.length)
+mostrarSemResultados(false)
+renderizarUsuarios(usuariosOrdenados)
+return
 
-  const texto = document.createElement('span')
-  texto.textContent = `${u.nome} - ${u.email}`
-
-  const btnEditar = document.createElement('button')
-  btnEditar.type = 'button'
-  btnEditar.textContent = 'Editar'
-  btnEditar.addEventListener('click', () => {
-    editarUsuario(u.id, u.nome, u.email)
-  })
-
-  const btnExcluir = document.createElement('button')
-  btnExcluir.type = 'button'
-  btnExcluir.textContent = 'Excluir'
-  btnExcluir.addEventListener('click', () => {
-    deletarUsuario(u.id)
-  })
-
-  li.appendChild(texto)
-  li.appendChild(btnEditar)
-  li.appendChild(btnExcluir)
-
-  lista.appendChild(li)
-})
-
-    } catch (error) {
-        console.error('Erro ao listar usuários:', error)
-    }
+  } catch (error) {
+    console.error('Erro ao listar usuários:', error)
+  }
 }
+function renderizarUsuarios(usuarios) {
+  const lista = document.getElementById('lista')
+  lista.innerHTML = ''
+
+  usuarios.forEach(u => {
+    const li = document.createElement('li')
+
+    const texto = document.createElement('span')
+    texto.textContent = `${u.nome} - ${u.email}`
+
+    const btnEditar = document.createElement('button')
+    btnEditar.type = 'button'
+    btnEditar.textContent = 'Editar'
+    btnEditar.addEventListener('click', () => {
+      editarUsuario(u.id, u.nome, u.email)
+    })
+
+    const btnExcluir = document.createElement('button')
+    btnExcluir.type = 'button'
+    btnExcluir.textContent = 'Excluir'
+    btnExcluir.addEventListener('click', () => {
+      deletarUsuario(u.id)
+    })
+
+    li.appendChild(texto)
+    li.appendChild(btnEditar)
+    li.appendChild(btnExcluir)
+
+    lista.appendChild(li)
+  })
+}
+
+
+function filtrarUsuarios(texto) {
+  const termo = texto.toLowerCase()
+
+  const usuariosFiltrados = usuariosCache.filter(u =>
+    u.nome.toLowerCase().includes(termo) ||
+    u.email.toLowerCase().includes(termo)
+  )
+
+  atualizarContador(usuariosFiltrados.length)
+  mostrarSemResultados(usuariosFiltrados.length === 0)
+
+  renderizarUsuarios(usuariosFiltrados)
+}
+
 
 function editarUsuario(id, nome, email) {
   document.getElementById('nome').value = nome
@@ -148,15 +187,24 @@ listarUsuarios()
 }
 
 async function deletarUsuario(id) {
+  const confirmar = confirm('Tem certeza que deseja excluir este usuário?')
+
+  if (!confirmar) return
+
   try {
-  await fetch(`${API_URL}/${id}`, {
-     method: 'DELETE' 
+    await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE'
     })
+
+    mostrarMensagem('Usuário excluído com sucesso!', 'sucesso')
     listarUsuarios()
-}catch(error) {
-  console.error('Erro ao deletar usuário:', error)
+
+  } catch (error) {
+    mostrarMensagem('Erro ao excluir usuário.', 'erro')
+    console.error(error)
   }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
   listarUsuarios()
@@ -170,4 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document
     .getElementById('btnCancelar')
     .addEventListener('click', cancelarEdicao)
+
+    const busca = document.getElementById('busca')
+    busca.addEventListener('input', e => {
+    filtrarUsuarios(e.target.value)
   })
+})

@@ -14,7 +14,12 @@
   <input id="email" placeholder="Email" />
   <button type="button" id="btnSalvar" onclick="criarUsuario()">Salvar</button>
   <button type="button" id="btnCancelar" style="display: none">Cancelar</button>
-  <ul id="lista"></ul>
+  <input type="text" id="busca" placeholder="Buscar usuário..." style="margin-left: 10px;"/>
+  <p id="contador"></p>
+  <p id="semResultados" style="display:none">
+  ❌ Nenhum usuário encontrado
+</p>
+  <ol id="lista"></ol>
   </form>
   <script src="script.js"></script>
 </body>
